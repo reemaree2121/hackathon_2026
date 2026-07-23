@@ -3,7 +3,7 @@
 // When deployed: set this to your Render backend URL e.g. https://campussphere-backend.onrender.com/api
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000/api'
-  : 'https://campussphere-backend.onrender.com/api';
+  : 'https://hackathon-2026-bm42.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('token');
