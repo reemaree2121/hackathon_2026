@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freshers Portal — Login</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container auth-shell">
+  <div class="card">
+    <div class="auth-logo">🎓</div>
+    <h2 class="auth-title" style="text-align:center;">Freshers Portal</h2>
+    <p class="auth-subtitle">Your campus, all in one place.</p>
+
+    <div id="login-form">
+      <h3>Welcome back</h3>
+      <label class="field-label" for="login-email">College email</label>
+      <input type="email" id="login-email" placeholder="you@college.edu">
+      <label class="field-label" for="login-password">Password</label>
+      <input type="password" id="login-password" placeholder="••••••••">
+      <button class="btn btn-block" onclick="handleLogin()">Log in</button>
+      <p class="error-text" id="login-error"></p>
+      <p class="form-footer-link">
+        New here? <a href="#" onclick="toggleForms()">Create an account</a>
+      </p>
+    </div>
+
+    <div id="register-form" style="display:none;">
+      <h3>Create your account</h3>
+      <label class="field-label" for="reg-name">Full name</label>
+      <input type="text" id="reg-name" placeholder="Full Name">
+      <label class="field-label" for="reg-email">College email</label>
+      <input type="email" id="reg-email" placeholder="College Email">
+      <label class="field-label" for="reg-password">Password</label>
+      <input type="password" id="reg-password" placeholder="Password">
+      <div class="field-row">
+        <div>
+          <label class="field-label" for="reg-department">Department</label>
+          <select id="reg-department" onchange="loadCoursesForDepartment()"></select>
+        </div>
+        <div>
+          <label class="field-label" for="reg-course">Course</label>
+          <select id="reg-course"></select>
+        </div>
+      </div>
+      <label class="field-label" for="reg-year">Academic year</label>
+      <select id="reg-year">
+        <option value="1st">1st Year</option>
+        <option value="2nd">2nd Year</option>
+        <option value="3rd">3rd Year</option>
+        <option value="4th">4th Year</option>
+      </select>
+      <div class="field-row">
+        <div>
+          <label class="field-label" for="reg-section">Section</label>
+          <input type="text" id="reg-section" placeholder="e.g. A">
+        </div>
+        <div>
+          <label class="field-label" for="reg-batch">Batch number</label>
+          <input type="text" id="reg-batch" placeholder="e.g. 2026-30">
+        </div>
+      </div>
+      <button class="btn btn-block" onclick="handleRegister()">Create account</button>
+      <p class="error-text" id="register-error"></p>
+      <p class="form-footer-link">
+        Already have an account? <a href="#" onclick="toggleForms()">Log in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function loadDepartments() {
+  try {
+    const departments = await apiRequest('/departments');
+    const select = document.getElementById('reg-department');
+    select.innerHTML = departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    await loadCoursesForDepartment();
+  } catch (err) {
+    console.error('Failed to load departments', err);
+  }
+}
+
+async function loadCoursesForDepartment() {
+  const departmentId = document.getElementById('reg-department').value;
+  try {
+    const courses = await apiRequest(`/courses?department_id=${encodeURIComponent(departmentId)}`);
+    const select = document.getElementById('reg-course');
+    select.innerHTML = courses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  } catch (err) {
+    console.error('Failed to load courses', err);
+  }
+}
+
+function toggleForms() {
+  const l = document.getElementById('login-form');
+  const r = document.getElementById('register-form');
+  l.style.display = l.style.display === 'none' ? 'block' : 'none';
+  r.style.display = r.style.display === 'none' ? 'block' : 'none';
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  try {
+    const data = await apiRequest('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    setToken(data.token);
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    document.getElementById('login-error').textContent = err.message;
+  }
+}
+
+async function handleRegister() {
+  const payload = {
+    fullName: document.getElementById('reg-name').value,
+    email: document.getElementById('reg-email').value,
+    password: document.getElementById('reg-password').value,
+    departmentId: document.getElementById('reg-department').value,
+    courseId: document.getElementById('reg-course').value,
+    academicYear: document.getElementById('reg-year').value,
+    section: document.getElementById('reg-section').value,
+    batchNumber: document.getElementById('reg-batch').value
+  };
+  try {
+    const data = await apiRequest('/register', { method: 'POST', body: JSON.stringify(payload) });
+    setToken(data.token);
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    document.getElementById('register-error').textContent = err.message;
+  }
+}
+
+loadDepartments();
+</script>
+</body>
+</html>

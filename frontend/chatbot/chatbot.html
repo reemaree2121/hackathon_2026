@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex College Student Portal - Standalone Chatbot Demo</title>
+
+  <!-- ====================================================================
+       1. CHATBOT CSS LINK (Add this tag to the <head> of your project)
+       ==================================================================== -->
+  <link rel="stylesheet" href="./chatbot.css" />
+
+  <style>
+    /* Demo Page Styling - Not required for chatbot itself */
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #ffffff;
+      padding: 16px 32px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #4f46e5;
+    }
+    .demo-container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 32px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .code-box {
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 16px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+    .btn {
+      background: #4f46e5;
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .btn:hover { background: #4338ca; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎓 sara Institute Student Portal (Chatbot Standalone Preview)</h1>
+    <span style="font-size: 14px; color: #64748b;"></span>
+  </header>
+
+  <div class="demo-container">
+    <span class="badge">Chatbot Integration Preview</span>
+    <h2>Apex Campus AI Assistant</h2>
+    <p style="color: #64748b; margin-top: 8px; line-height: 1.6;">
+      This standalone page demonstrates the embedded AI Chatbot widget. Notice the floating AI button at the bottom right corner of the browser window.
+    </p>
+
+    <div style="margin-top: 24px;">
+      <button class="btn" onclick="CampusChatbot.open()">Click to Open Chatbot</button>
+      <button class="btn" style="background: #0284c7;" onclick="CampusChatbot.setActivePageContext('Timetable')">Simulate Timetable Page</button>
+      <button class="btn" style="background: #059669;" onclick="CampusChatbot.setActivePageContext('Attendance')">Simulate Attendance Page</button>
+    </div>
+
+    <h3 style="margin-top: 36px;">How to integrate into any HTML/CSS/JS page:</h3>
+    <p style="font-size: 14px; color: #475569;">Copy the files into your project folder `/chatbot/`, then include these script tags before the closing <code>&lt;/body&gt;</code> tag:</p>
+
+    <div class="code-box">&lt;!-- 1. Include CSS in head --&gt;
+&lt;link rel="stylesheet" href="/chatbot/chatbot.css" /&gt;
+
+&lt;!-- 2. Include JS ES Modules at bottom of body --&gt;
+&lt;script type="module"&gt;
+  import { CampusChatbot } from '/chatbot/chatbot.js';
+
+  // Initialize Chatbot with configuration
+  CampusChatbot.init({
+    provider: 'gemini', // 'gemini' | 'openai' | 'openrouter' | 'local' | 'fallback'
+    apiKey: '', // Added here or handled via server proxy
+    activePage: 'Dashboard',
+    theme: 'light'
+  });
+&lt;/script&gt;</div>
+  </div>
+
+  <!-- ====================================================================
+       2. CHATBOT ES MODULE IMPORTS & INITIALIZATION
+       ==================================================================== -->
+  <script type="module">
+    import { CampusChatbot } from './chatbot.js';
+
+    // Auto initialize on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      CampusChatbot.init({
+        provider: 'gemini', // Defaults to server-side proxy
+        activePage: 'Dashboard',
+        theme: 'light'
+      });
+    });
+  </script>
+</body>
+</html>

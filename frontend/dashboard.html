@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Freshers Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="./chatbot/chatbot.css" />
+</head>
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <span class="brand"><span class="brand-mark">🎓</span> Freshers Portal</span>
+    <div class="navbar-links">
+      <a href="dashboard.html" class="active">🏠 Dashboard</a>
+      <a href="resources.html">📚 Resources</a>
+      <a href="events.html">🎉 Events</a>
+      <a href="timetable.html">🗓️ Timetable</a>
+      <a href="clubs.html">🌟 Clubs</a>
+      <a href="seniors.html">🎓 Seniors</a>
+      <a href="campus.html">📍 Campus</a>
+    </div>
+    <a href="#" class="logout-link" id="logout-btn">Logout</a>
+  </div>
+
+  <!-- NOTIFICATION PANEL -->
+  <div class="notif-overlay" id="notif-overlay" onclick="closeNotif()"></div>
+  <div class="notif-panel" id="notif-panel">
+    <div class="notif-header">
+      <h3 style="margin:0">🔔 Notifications</h3>
+      <button class="notif-close-btn" onclick="closeNotif()" style="background:none;border:none;cursor:pointer;font-size:1.2rem">✕</button>
+    </div>
+    <div id="notif-content">Loading...</div>
+  </div>
+
+  <!-- NOTE MODAL -->
+  <div class="modal-overlay" id="note-modal">
+    <div class="modal-box">
+      <h3 class="modal-title" id="note-modal-title">Add Note</h3>
+      <label class="field-label" style="display:block;margin-bottom:8px;font-size:0.9rem;font-weight:600">Title</label>
+      <input type="text" id="note-input-title" placeholder="Note title..." style="width:100%;padding:10px;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);color:var(--text)">
+      <label class="field-label" style="display:block;margin-bottom:8px;font-size:0.9rem;font-weight:600">Description</label>
+      <textarea id="note-input-body" rows="4" placeholder="Write your note here..." style="width:100%;padding:10px;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);color:var(--text)"></textarea>
+      <label class="field-label" style="display:block;margin-bottom:8px;font-size:0.9rem;font-weight:600">Color</label>
+      <select id="note-input-color" style="width:100%;padding:10px;margin-bottom:16px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);color:var(--text)">
+        <option value="note-yellow">🟡 Yellow</option>
+        <option value="note-blue">🔵 Blue</option>
+        <option value="note-pink">🩷 Pink</option>
+        <option value="note-green">🟢 Green</option>
+        <option value="note-purple">💜 Purple</option>
+      </select>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('note-modal')">Cancel</button>
+        <button class="btn btn-sm" id="note-submit-btn" onclick="submitNote()">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK VIEW MODAL (for upcoming events) -->
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal-box">
+      <div id="event-modal-content"></div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('event-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="container">
+    <!-- HERO HEADER -->
+    <div class="dash-hero">
+      <div class="dash-hero-left">
+        <h1 id="welcome-text">Welcome back 👋</h1>
+        <p id="today-date"></p>
+      </div>
+      <div class="dash-hero-controls">
+        <button class="hero-ctrl-btn" id="darkmode-btn" onclick="DarkModeToggle()" title="Toggle Dark Mode">🌙</button>
+        <div class="notif-bell-wrap">
+          <button class="hero-ctrl-btn" onclick="openNotif()" title="Notifications">🔔</button>
+          <span class="notif-count" id="notif-count" style="display:none">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="stats-grid">
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-blue">📅</div>
+        <div class="stat-number" id="stat-total">0</div>
+        <div class="stat-label">Total Events</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-green">🔮</div>
+        <div class="stat-number" id="stat-upcoming">0</div>
+        <div class="stat-label">Upcoming</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-orange">✅</div>
+        <div class="stat-number" id="stat-completed">0</div>
+        <div class="stat-label">Completed</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-purple">📝</div>
+        <div class="stat-number" id="stat-notes">0</div>
+        <div class="stat-label">Notes</div>
+      </div>
+      <div class="card stat-card">
+        <div class="stat-icon stat-icon-cyan">📆</div>
+        <div class="stat-number" id="stat-week">0</div>
+        <div class="stat-label">This Week</div>
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT: 2 columns -->
+    <div class="dash-layout">
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- UPCOMING EVENTS WIDGET -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="section-header">
+            <span class="section-title">⚡ Upcoming Events</span>
+            <a href="events.html" style="font-size:0.82rem;color:var(--primary);text-decoration:none;font-weight:600">View all →</a>
+          </div>
+          <div id="upcoming-widget">Loading...</div>
+        </div>
+
+        <!-- MINI CALENDAR -->
+        <div class="card">
+          <div class="section-header">
+            <span class="section-title">📅 Calendar</span>
+          </div>
+          <div class="calendar-wrap">
+            <div class="cal-header">
+              <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+              <strong id="cal-month-label"></strong>
+              <button class="cal-nav-btn" onclick="calNext()">›</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-events-popover" id="cal-popover"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <!-- QUICK ACTIONS -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="section-header"><span class="section-title">⚡ Quick Actions</span></div>
+          <div class="quick-actions-grid">
+            <button class="qa-btn" id="qa-create-event">
+              <span class="qa-btn-icon">🎉</span>
+              <span class="qa-btn-label">Create Event</span>
+            </button>
+            <button class="qa-btn" id="qa-add-note">
+              <span class="qa-btn-icon">📝</span>
+              <span class="qa-btn-label">Add Note</span>
+            </button>
+            <button class="qa-btn" id="qa-export">
+              <span class="qa-btn-icon">📤</span>
+              <span class="qa-btn-label">Export Events</span>
+            </button>
+            <button class="qa-btn" id="qa-refresh">
+              <span class="qa-btn-icon">🔄</span>
+              <span class="qa-btn-label">Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- PROGRESS SECTION -->
+        <div class="card">
+          <div class="section-header"><span class="section-title">📊 Progress</span></div>
+          <div class="progress-ring-wrap">
+            <div class="progress-ring">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="var(--border)" stroke-width="8"/>
+                <circle id="prog-ring-fill" cx="40" cy="40" r="32" fill="none" stroke="var(--primary)" stroke-width="8"
+                  stroke-dasharray="201" stroke-dashoffset="201" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="progress-ring-label"><span id="prog-pct">0</span>%</div>
+              <div style="font-size:0.78rem;color:var(--text-muted)">Completion Rate</div>
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:0.82rem;color:var(--text-muted)">Events This Month</span>
+              <strong id="prog-monthly" style="font-size:0.82rem;color:var(--text)">0</strong>
+            </div>
+          </div>
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.06em;margin:12px 0 8px">Weekly Activity</div>
+          <div class="weekly-chart-wrap">
+            <div class="weekly-chart" id="weekly-chart"></div>
+            <div style="display:flex;gap:6px;" id="weekly-labels"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SYNCED EVENTS SECTION -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-header">
+        <span class="section-title">🎉 All Events</span>
+      </div>
+      <!-- Filter bar -->
+      <div class="filter-bar">
+        <input type="text" id="ev-search" placeholder="🔍 Search events..." oninput="applyFilters()" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">
+        <select id="ev-status" onchange="applyFilters()" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">
+          <option value="">All Status</option>
+          <option value="Upcoming">Upcoming</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Completed">Completed</option>
+        </select>
+        <select id="ev-sort" onchange="applyFilters()" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">
+          <option value="asc">Date: Newest First</option>
+          <option value="desc">Date: Oldest First</option>
+        </select>
+        <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+      </div>
+      <div id="dash-events-list">Loading...</div>
+    </div>
+
+    <!-- NOTES SECTION -->
+    <div style="margin-bottom:24px">
+      <div class="section-header">
+        <span class="section-title">📝 My Notes</span>
+        <button class="btn btn-sm" onclick="openNoteModal()">+ Add Note</button>
+      </div>
+      <div class="notes-grid" id="notes-grid">
+        <div style="color:var(--text-muted);font-size:0.9rem">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY TIMELINE -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-header">
+        <span class="section-title">🕐 Recent Activity</span>
+        <button class="section-action" onclick="clearActivity()">Clear</button>
+      </div>
+      <div class="timeline" id="activity-list">
+        <div style="color:var(--text-muted);font-size:0.88rem">No activity yet.</div>
+      </div>
+    </div>
+
+    <!-- ORIGINAL DASHBOARD CARDS (today's classes, notices, recommended clubs) -->
+    <div class="grid" style="margin-top:24px">
+      <div class="card">
+        <div class="section-header"><span class="section-title">📅 Today's Classes</span></div>
+        <div id="todays-classes"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+      </div>
+      <div class="card">
+        <div class="section-header"><span class="section-title">📢 Notices</span></div>
+        <div id="notices"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px;margin-bottom:40px;">
+      <div class="section-header"><span class="section-title">🌟 Recommended Clubs</span></div>
+      <div class="grid" id="recommended-clubs" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script type="module" src="js/dashboard-app.js"></script>
+  <script type="module">
+    import { CampusChatbot } from './chatbot/chatbot.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      CampusChatbot.init({ provider: 'gemini', activePage: 'Dashboard', theme: 'light',
+        userProfile: { name: 'Student', studentId: '2024-CS-042', department: 'Computer Science' }
+      });
+    });
+  </script>
+</body>
+</html>

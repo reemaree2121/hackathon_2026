@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timetable — Freshers Portal</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="./chatbot/chatbot.css" />
+</head>
+<body>
+<div class="navbar">
+  <span class="brand"><span class="brand-mark">🎓</span> Freshers Portal</span>
+  <div class="navbar-links">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="resources.html">📚 Resources</a>
+    <a href="events.html">🎉 Events</a>
+    <a href="timetable.html" class="active">🗓️ Timetable</a>
+    <a href="clubs.html">🌟 Clubs</a>
+    <a href="seniors.html">🎓 Seniors</a>
+    <a href="campus.html">📍 Campus</a>
+  </div>
+  <a href="#" class="logout-link" onclick="clearToken(); window.location.href='index.html';">Logout</a>
+</div>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>🗓️ My Timetable</h2>
+      <p class="page-subtitle">Your weekly class schedule, grouped by day.</p>
+    </div>
+  </div>
+  <div id="timetable-list">
+    <div class="card"><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line"></div></div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+requireLoginOrRedirect();
+
+async function loadTimetable() {
+  try {
+    const rows = await apiRequest('/timetable');
+    if (rows.length === 0) {
+      document.getElementById('timetable-list').innerHTML = '<div class="card"><div class="empty-state"><div class="empty-icon">🗓️</div><div class="empty-title">No timetable yet</div><div class="empty-hint">Your class schedule hasn\'t been published.</div></div></div>';
+      return;
+    }
+    const byDay = {};
+    rows.forEach(r => {
+      if (!byDay[r.day_of_week]) byDay[r.day_of_week] = [];
+      byDay[r.day_of_week].push(r);
+    });
+    document.getElementById('timetable-list').innerHTML = Object.entries(byDay).map(([day, classes]) => `
+      <div class="card timetable-day-card">
+        <h3>${day}</h3>
+        ${classes.map(c => `
+          <div class="class-row ${c.is_lab ? 'is-lab' : ''}">
+            <div class="class-time">${c.start_time.slice(0,5)}–${c.end_time.slice(0,5)}</div>
+            <div class="class-meta">
+              <p class="class-subject">${c.subject} ${c.is_lab ? '<span class="badge badge-amber">Lab</span>' : ''}</p>
+              <p class="class-detail">${c.faculty} · ${c.classroom}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  } catch (err) {
+    document.getElementById('timetable-list').textContent = 'Failed to load timetable: ' + err.message;
+  }
+}
+
+loadTimetable();
+</script>
+<script type="module">
+  import { CampusChatbot } from './chatbot/chatbot.js';
+  document.addEventListener('DOMContentLoaded', () => {
+    CampusChatbot.init({
+      provider: 'gemini',
+      activePage: 'Timetable',
+      theme: 'light',
+      userProfile: { name: 'Rahul Verma', studentId: '2024-CS-042', department: 'Computer Science' }
+    });
+  });
+</script>
+</body>
+</html>

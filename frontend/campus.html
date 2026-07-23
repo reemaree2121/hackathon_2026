@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus — Freshers Portal</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="./chatbot/chatbot.css" />
+</head>
+<body>
+<div class="navbar">
+  <span class="brand"><span class="brand-mark">🎓</span> Freshers Portal</span>
+  <div class="navbar-links">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="resources.html">📚 Resources</a>
+    <a href="events.html">🎉 Events</a>
+    <a href="timetable.html">🗓️ Timetable</a>
+    <a href="clubs.html">🌟 Clubs</a>
+    <a href="seniors.html">🎓 Seniors</a>
+    <a href="campus.html" class="active">📍 Campus</a>
+  </div>
+  <a href="#" class="logout-link" onclick="clearToken(); window.location.href='index.html';">Logout</a>
+</div>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>📍 Campus Guide</h2>
+      <p class="page-subtitle">💬 Tip: ask the Campus Copilot chat "where is the library?"</p>
+    </div>
+  </div>
+  <div class="grid" id="campus-list">
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+    <div class="skeleton skeleton-card"></div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+requireLoginOrRedirect();
+
+async function loadCampus() {
+  try {
+    const locations = await apiRequest('/campus');
+    document.getElementById('campus-list').innerHTML = locations.length ? locations.map(l => `
+      <div class="card card-interactive">
+        <h3>${l.name}</h3>
+        <p>${l.description || ''}</p>
+        <p><strong>Department:</strong> ${l.department || '—'}</p>
+        <p><strong>Nearby:</strong> ${l.nearby_facilities || '—'}</p>
+        <p><strong>Floor:</strong> ${l.floor_info || '—'}</p>
+      </div>
+    `).join('') : '<div class="card"><div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">No campus locations yet</div></div></div>';
+  } catch (err) {
+    document.getElementById('campus-list').textContent = 'Failed to load: ' + err.message;
+  }
+}
+
+loadCampus();
+</script>
+<script type="module">
+  import { CampusChatbot } from './chatbot/chatbot.js';
+  document.addEventListener('DOMContentLoaded', () => {
+    CampusChatbot.init({
+      provider: 'gemini',
+      activePage: 'Campus',
+      theme: 'light',
+      userProfile: { name: 'Rahul Verma', studentId: '2024-CS-042', department: 'Computer Science' }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Books & Resources — Freshers Portal</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="./chatbot/chatbot.css" />
+</head>
+<body>
+<div class="navbar">
+  <span class="brand"><span class="brand-mark">🎓</span> Freshers Portal</span>
+  <div class="navbar-links">
+    <a href="dashboard.html">🏠 Dashboard</a>
+    <a href="resources.html" class="active">📚 Resources</a>
+    <a href="events.html">🎉 Events</a>
+    <a href="timetable.html">🗓️ Timetable</a>
+    <a href="clubs.html">🌟 Clubs</a>
+    <a href="seniors.html">🎓 Seniors</a>
+    <a href="campus.html">📍 Campus</a>
+  </div>
+  <a href="#" class="logout-link" onclick="clearToken(); window.location.href='index.html';">Logout</a>
+</div>
+
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h2>📚 Books & Resources Exchange</h2>
+      <p class="page-subtitle">Buy, sell, and share study material with your batch.</p>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('books')">Books Exchange</button>
+    <button class="tab-btn" onclick="switchTab('resources')">Digital Resources</button>
+  </div>
+
+  <!-- Books Tab -->
+  <div id="tab-books" class="tab-content active">
+    <div class="card" style="margin-bottom: 20px;">
+      <h3 class="section-heading">Add book listing</h3>
+      <div class="field-row" style="grid-template-columns: 1fr 1fr;">
+        <input type="text" id="b-name" placeholder="Book Name">
+        <input type="text" id="b-subject" placeholder="Subject">
+        <input type="text" id="b-sem" placeholder="Semester">
+        <select id="b-dept" class="dept-select"></select>
+        <input type="text" id="b-cond" placeholder="Condition (e.g. Good)">
+        <input type="number" id="b-price" placeholder="Price (₹)">
+      </div>
+      <button class="btn" style="margin-top: 4px;" onclick="addBook()">List Book</button>
+      <p id="b-msg" class="badge badge-green" style="display: none; margin-top: 10px;">✓ Book listed successfully!</p>
+    </div>
+
+    <div class="field-row" style="margin-bottom: 4px;">
+      <input type="text" id="filter-b-subj" placeholder="🔍 Filter by subject" onkeyup="loadBooks()">
+      <select id="filter-b-dept" class="dept-select" onchange="loadBooks()">
+        <option value="">All Depts</option>
+      </select>
+    </div>
+    <div class="grid" id="books-list">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+  </div>
+
+  <!-- Resources Tab -->
+  <div id="tab-resources" class="tab-content">
+    <div class="card" style="margin-bottom: 20px;">
+      <h3 class="section-heading">Share digital resource</h3>
+      <div class="field-row" style="grid-template-columns: 1fr 1fr;">
+        <input type="text" id="r-title" placeholder="Title">
+        <input type="text" id="r-subject" placeholder="Subject">
+        <input type="text" id="r-sem" placeholder="Semester">
+        <select id="r-dept" class="dept-select"></select>
+        <select id="r-type"><option value="pdf">PDF</option><option value="notes">Notes</option><option value="pyq">PYQ</option><option value="drive">Drive Link</option><option value="github">GitHub Repo</option><option value="website">Website</option></select>
+        <input type="url" id="r-link" placeholder="URL Link">
+      </div>
+      <button class="btn" style="margin-top: 4px;" onclick="addResource()">Share Resource</button>
+      <p id="r-msg" class="badge badge-green" style="display: none; margin-top: 10px;">✓ Resource shared!</p>
+    </div>
+
+    <div style="margin-bottom: 4px;">
+      <input type="text" id="filter-r-subj" placeholder="🔍 Filter by subject" onkeyup="loadResources()">
+    </div>
+    <div class="grid" id="resources-list">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+requireLoginOrRedirect();
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+async function loadDepartmentDropdowns() {
+  try {
+    const departments = await apiRequest('/departments');
+    const options = departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    document.querySelectorAll('.dept-select').forEach(select => {
+      const hasAllOption = select.id === 'filter-b-dept';
+      select.innerHTML = (hasAllOption ? '<option value="">All Depts</option>' : '') + options;
+    });
+  } catch (err) {
+    console.error('Failed to load departments', err);
+  }
+}
+
+async function loadBooks() {
+  const subj = document.getElementById('filter-b-subj').value;
+  const dept = document.getElementById('filter-b-dept').value;
+  let q = [];
+  if (subj) q.push(`subject=${encodeURIComponent(subj)}`);
+  if (dept) q.push(`department_id=${encodeURIComponent(dept)}`);
+  const qs = q.length ? '?' + q.join('&') : '';
+  
+  try {
+    const data = await apiRequest(`/books${qs}`);
+    document.getElementById('books-list').innerHTML = data.length ? data.map(b => `
+      <div class="card card-interactive">
+        <h3 style="margin:0;">${b.book_name}</h3>
+        <p style="margin: 8px 0;"><span class="badge">${b.subject}</span> <span class="badge badge-gray">${b.department}</span></p>
+        <p><strong>Condition:</strong> ${b.condition || '—'} · <strong>Price:</strong> ₹${b.price}</p>
+        <p><strong>Seller:</strong> ${b.owner_name}</p>
+        <a class="btn" href="mailto:${b.owner_email}">Contact Seller</a>
+      </div>
+    `).join('') : '<div class="card"><div class="empty-state"><div class="empty-icon">📕</div><div class="empty-title">No books found</div><div class="empty-hint">Try adjusting your filters.</div></div></div>';
+  } catch (err) {
+    document.getElementById('books-list').textContent = 'Error: ' + err.message;
+  }
+}
+
+async function addBook() {
+  const payload = {
+    book_name: document.getElementById('b-name').value,
+    subject: document.getElementById('b-subject').value,
+    semester: document.getElementById('b-sem').value,
+    department_id: document.getElementById('b-dept').value,
+    condition: document.getElementById('b-cond').value,
+    price: document.getElementById('b-price').value
+  };
+  try {
+    await apiRequest('/books', { method: 'POST', body: JSON.stringify(payload) });
+    document.getElementById('b-msg').style.display = 'inline-block';
+    setTimeout(() => { document.getElementById('b-msg').style.display = 'none'; }, 3000);
+    loadBooks();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function loadResources() {
+  const subj = document.getElementById('filter-r-subj').value;
+  const qs = subj ? `?subject=${encodeURIComponent(subj)}` : '';
+  
+  try {
+    const data = await apiRequest(`/resources${qs}`);
+    document.getElementById('resources-list').innerHTML = data.length ? data.map(r => `
+      <div class="card card-interactive">
+        <h3 style="margin:0;">${r.title}</h3>
+        <p style="margin: 8px 0;"><span class="badge">${r.type.toUpperCase()}</span> <span class="badge badge-gray">${r.subject}</span></p>
+        <p><strong>By:</strong> ${r.uploaded_by_name}</p>
+        <a class="btn" href="${r.link}" target="_blank">Open Link</a>
+      </div>
+    `).join('') : '<div class="card"><div class="empty-state"><div class="empty-icon">📄</div><div class="empty-title">No resources found</div><div class="empty-hint">Try a different subject.</div></div></div>';
+  } catch (err) {
+    document.getElementById('resources-list').textContent = 'Error: ' + err.message;
+  }
+}
+
+async function addResource() {
+  const payload = {
+    title: document.getElementById('r-title').value,
+    subject: document.getElementById('r-subject').value,
+    semester: document.getElementById('r-sem').value,
+    department_id: document.getElementById('r-dept').value,
+    type: document.getElementById('r-type').value,
+    link: document.getElementById('r-link').value
+  };
+  try {
+    await apiRequest('/resources', { method: 'POST', body: JSON.stringify(payload) });
+    document.getElementById('r-msg').style.display = 'inline-block';
+    setTimeout(() => { document.getElementById('r-msg').style.display = 'none'; }, 3000);
+    loadResources();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+loadDepartmentDropdowns();
+loadBooks();
+loadResources();
+</script>
+<script type="module">
+  import { CampusChatbot } from './chatbot/chatbot.js';
+  document.addEventListener('DOMContentLoaded', () => {
+    CampusChatbot.init({
+      provider: 'gemini',
+      activePage: 'Resources',
+      theme: 'light',
+      userProfile: { name: 'Rahul Verma', studentId: '2024-CS-042', department: 'Computer Science' }
+    });
+  });
+</script>
+</body>
+</html>

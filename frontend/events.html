@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events — Freshers Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="./chatbot/chatbot.css">
+  <style>
+    /* Specific overrides and additions for Events page */
+    .event-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .event-card-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      gap: 12px; 
+      margin-bottom: 10px; 
+      flex-wrap: wrap; 
+    }
+    .event-card-actions { 
+      display: flex; 
+      gap: 8px; 
+      flex-shrink: 0; 
+    }
+    .event-meta-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+      gap: 8px; 
+      margin-top: auto; 
+    }
+    .event-meta-item { 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+      font-size: 0.84rem; 
+      color: var(--text-muted); 
+    }
+    
+    /* Status Badges */
+    .status-upcoming { background: #dbeafe; color: #1d4ed8; }
+    .status-ongoing { background: #dcfce7; color: #15803d; }
+    .status-completed { background: #f1f5f9; color: #64748b; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: var(--surface);
+      border-radius: var(--r-lg);
+      padding: var(--sp-4);
+      width: 90%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(20px);
+      transition: transform 0.3s var(--ease);
+    }
+    .modal-overlay.active .modal-box {
+      transform: translateY(0);
+    }
+    .modal-title {
+      margin-top: 0;
+      margin-bottom: var(--sp-4);
+      font-size: 1.5rem;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-3);
+    }
+    .field-label {
+      display: block;
+      margin-bottom: var(--sp-1);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .modal-box input,
+    .modal-box select,
+    .modal-box textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-sm);
+      font-family: inherit;
+      margin-bottom: var(--sp-3);
+    }
+    .modal-box textarea {
+      resize: vertical;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--sp-2);
+      margin-top: var(--sp-2);
+    }
+    
+    /* Filters */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-2);
+      align-items: center;
+      background: var(--surface);
+      padding: var(--sp-3);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+    .filter-bar input, .filter-bar select {
+      padding: 8px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-sm);
+      min-width: 150px;
+    }
+    .filter-bar input { flex: 1; min-width: 200px; }
+
+    /* Toast Container */
+    .toast-container {
+      position: fixed;
+      bottom: var(--sp-4);
+      right: var(--sp-4);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+    
+    /* Buttons explicitly */
+    .btn-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid transparent;
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <span class="brand"><span class="brand-mark">🎓</span> Freshers Portal</span>
+    <div class="navbar-links">
+      <a href="dashboard.html">🏠 Dashboard</a>
+      <a href="resources.html">📚 Resources</a>
+      <a href="events.html" class="active">🎉 Events</a>
+      <a href="timetable.html">🗓️ Timetable</a>
+      <a href="clubs.html">🌟 Clubs</a>
+      <a href="seniors.html">🎓 Seniors</a>
+      <a href="campus.html">📍 Campus</a>
+    </div>
+    <a href="#" class="logout-link" id="logout-btn">Logout</a>
+  </div>
+
+  <!-- EVENT FORM MODAL -->
+  <div class="modal-overlay" id="event-form-modal">
+    <div class="modal-box">
+      <h3 class="modal-title" id="form-modal-title">Create Event</h3>
+      <div class="field-row">
+        <div>
+          <label class="field-label">Event Name *</label>
+          <input type="text" id="ev-name" placeholder="Event name">
+        </div>
+        <div>
+          <label class="field-label">Difficulty</label>
+          <select id="ev-diff">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </div>
+      </div>
+      
+      <label class="field-label">Description</label>
+      <textarea id="ev-desc" rows="3" placeholder="Event description..."></textarea>
+      
+      <div class="field-row">
+        <div>
+          <label class="field-label">Date *</label>
+          <input type="date" id="ev-date">
+        </div>
+        <div>
+          <label class="field-label">Start Time *</label>
+          <input type="time" id="ev-start">
+        </div>
+      </div>
+      
+      <div class="field-row">
+        <div>
+          <label class="field-label">End Time *</label>
+          <input type="time" id="ev-end">
+        </div>
+        <div>
+          <label class="field-label">Total Seats</label>
+          <input type="number" id="ev-seats" placeholder="50" min="1" value="50">
+        </div>
+      </div>
+      
+      <label class="field-label">Venue *</label>
+      <input type="text" id="ev-venue" placeholder="e.g. Main Auditorium">
+      
+      <div class="field-row">
+        <div>
+          <label class="field-label">Organizing Club</label>
+          <input type="text" id="ev-club" placeholder="Club name">
+        </div>
+        <div>
+          <label class="field-label">Registration Deadline</label>
+          <input type="date" id="ev-deadline">
+        </div>
+      </div>
+      
+      <div class="field-row">
+        <div>
+          <label class="field-label">Eligibility</label>
+          <input type="text" id="ev-elig" placeholder="All years">
+        </div>
+        <div>
+          <label class="field-label">Prerequisites</label>
+          <input type="text" id="ev-prereq" placeholder="None">
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-sm" id="form-submit-btn" onclick="submitEventForm()">Create Event</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="container">
+    <!-- PAGE HEADER -->
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
+      <div>
+        <h2 style="margin:0">🎉 Events</h2>
+        <p class="page-subtitle" style="margin-top:4px; margin-bottom:0">Manage, register, and track all campus events.</p>
+      </div>
+      <button class="btn" onclick="openCreateModal()">+ Create Event</button>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar" style="margin-bottom:20px">
+      <input type="text" id="f-search" placeholder="🔍 Search by name or venue...">
+      <select id="f-status">
+        <option value="">All Status</option>
+        <option>Upcoming</option>
+        <option>Ongoing</option>
+        <option>Completed</option>
+      </select>
+      <select id="f-sort">
+        <option value="asc">Oldest First</option>
+        <option value="desc">Newest First</option>
+      </select>
+      <button class="btn btn-outline btn-sm" onclick="resetFilters()">⟳ Reset</button>
+    </div>
+
+    <!-- EVENTS LIST -->
+    <div class="grid" id="events-list">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script type="module" src="js/events-app.js"></script>
+  <script type="module">
+    import { CampusChatbot } from './chatbot/chatbot.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      CampusChatbot.init({ 
+        provider: 'gemini', 
+        activePage: 'Events', 
+        theme: 'light',
+        userProfile: { name: 'Student', studentId: '2024-CS-042', department: 'Computer Science' }
+      });
+    });
+  </script>
+</body>
+</html>
