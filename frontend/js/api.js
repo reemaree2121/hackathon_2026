@@ -1,5 +1,9 @@
-// Change this if your backend runs on a different host/port
-const API_BASE = '/api';
+// Points to your backend server.
+// When running locally: http://localhost:5000/api
+// When deployed: set this to your Render backend URL e.g. https://campussphere-backend.onrender.com/api
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000/api'
+  : 'https://campussphere-backend.onrender.com/api';
 
 function getToken() {
   return localStorage.getItem('token');
