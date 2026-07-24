@@ -8,7 +8,7 @@ const { GoogleGenAI } = require('@google/genai');
 const ai = process.env.GEMINI_API_KEY ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY }) : null;
 
 // GET /seniors - Get all seniors
-router.get('/', async (req, res) => {
+router.get('/seniors', async (req, res) => {
   try {
     const [seniors] = await pool.query('SELECT * FROM seniors');
     res.json(seniors);
@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /domains - Get all domains
-router.get('/domains', async (req, res) => {
+router.get('/seniors/domains', async (req, res) => {
   try {
     const [domains] = await pool.query('SELECT * FROM domains');
     res.json(domains);
@@ -29,7 +29,7 @@ router.get('/domains', async (req, res) => {
   }
 });
 
-router.get('/match', requireAuth, async (req, res) => {
+router.get('/seniors/match', requireAuth, async (req, res) => {
   const count = parseInt(req.query.count, 10) || 3;
   const refresh = req.query.refresh === 'true';
   const userId = req.userId;
@@ -118,7 +118,7 @@ Be specific in reasons — mention actual skills, departments, and clubs by name
   }
 });
 
-router.post('/request', requireAuth, async (req, res) => {
+router.post('/seniors/request', requireAuth, async (req, res) => {
   const { mentor_id, message, ai_match_score } = req.body;
   const fresher_id = req.userId;
 
@@ -147,7 +147,7 @@ router.post('/request', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/my-requests', requireAuth, async (req, res) => {
+router.get('/seniors/my-requests', requireAuth, async (req, res) => {
   try {
     const [requests] = await pool.query(
       'SELECT mr.*, s.name AS mentor_name, s.skills, s.contact_email, d.name AS department, dom.name AS domain FROM mentorship_requests mr JOIN seniors s ON mr.mentor_id=s.id LEFT JOIN departments d ON s.department_id=d.id LEFT JOIN domains dom ON s.domain_id=dom.id WHERE mr.fresher_id=? ORDER BY mr.created_at DESC',
@@ -160,7 +160,7 @@ router.get('/my-requests', requireAuth, async (req, res) => {
   }
 });
 
-router.put('/request/:id/cancel', requireAuth, async (req, res) => {
+router.put('/seniors/request/:id/cancel', requireAuth, async (req, res) => {
   try {
     const requestId = req.params.id;
     const fresherId = req.userId;
@@ -180,7 +180,7 @@ router.put('/request/:id/cancel', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/feedback', requireAuth, async (req, res) => {
+router.post('/seniors/feedback', requireAuth, async (req, res) => {
   const { mentor_id, rating, feedback } = req.body;
   const fresher_id = req.userId;
 
@@ -198,7 +198,7 @@ router.post('/feedback', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/stats', requireAuth, async (req, res) => {
+router.get('/seniors/stats', requireAuth, async (req, res) => {
   try {
     const fresher_id = req.userId;
 
