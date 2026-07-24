@@ -1,6 +1,7 @@
 {
-  "outputDirectory": "frontend",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/", "destination": "/frontend/index.html" },
+    { "source": "/(css|js|images|components)/(.*)", "destination": "/frontend/$1/$2" },
+    { "source": "/(.*\\.html)", "destination": "/frontend/$1" }
   ]
 }
