@@ -20,7 +20,8 @@ pool.getConnection()
   })
   .catch(err => {
     console.error("❌ MySQL Connection Failed");
-    console.error(err.message);
+    console.error(`Host: ${process.env.DB_HOST}, User: ${process.env.DB_USER}, DB: ${process.env.DB_NAME}`);
+    console.error("Full Error:", err);
   });
 
 module.exports = pool;
