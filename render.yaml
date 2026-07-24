@@ -13,12 +13,14 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: DB_HOST
-        sync: false
+        value: sakura.proxy.rlwy.net
       - key: DB_USER
-        sync: false
+        value: root
       - key: DB_PASSWORD
-        sync: false
+        value: AcSmQsKyIVLFUeNeaJoNupoKJqzwgnnc
       - key: DB_NAME
-        sync: false
+        value: railway
+      - key: DB_PORT
+        value: '28066'
       - key: GEMINI_API_KEY
         sync: false
