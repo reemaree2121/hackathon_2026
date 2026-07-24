@@ -1,13 +1,19 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+const dbHost = process.env.DB_HOST || 'sakura.proxy.rlwy.net';
+const dbUser = process.env.DB_USER || 'root';
+const dbPassword = process.env.DB_PASSWORD || 'AcSmQsKyIVLFUeNeaJoNupoKJqzwgnnc';
+const dbName = process.env.DB_NAME || 'railway';
+const dbPort = process.env.DB_PORT || 28066;
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || 3306,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  host: dbHost,
+  user: dbUser,
+  password: dbPassword,
+  database: dbName,
+  port: dbPort,
+  ssl: { rejectUnauthorized: false },
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -20,7 +26,7 @@ pool.getConnection()
   })
   .catch(err => {
     console.error("❌ MySQL Connection Failed");
-    console.error(`Host: ${process.env.DB_HOST}, User: ${process.env.DB_USER}, DB: ${process.env.DB_NAME}`);
+    console.error(`Host: ${dbHost}, User: ${dbUser}, DB: ${dbName}`);
     console.error("Full Error:", err);
   });
 
