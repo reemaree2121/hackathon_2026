@@ -5,7 +5,7 @@ const dbHost = process.env.DB_HOST || 'sakura.proxy.rlwy.net';
 const dbUser = process.env.DB_USER || 'root';
 const dbPassword = process.env.DB_PASSWORD || 'AcSmQsKyIVLFUeNeaJoNupoKJqzwgnnc';
 const dbName = process.env.DB_NAME || 'railway';
-const dbPort = process.env.DB_PORT || 28066;
+const dbPort = Number(process.env.DB_PORT) || (dbHost === 'localhost' || dbHost === '127.0.0.1' ? 3306 : 28066);
 
 const pool = mysql.createPool({
   host: dbHost,
